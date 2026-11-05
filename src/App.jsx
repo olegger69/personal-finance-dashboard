@@ -1,28 +1,48 @@
-import { useTransactions } from './hooks/useTransactions'
-import SummaryCards from './components/SummaryCards'
-import TransactionForm from './components/TransactionForm'
-import TransactionList from './components/TransactionList'
-import Charts from './components/Charts'
-import MonthFilter from './components/MonthFilter'
+import React from 'react';
+import SummaryCards from './components/SummaryCards';
+import TransactionForm from './components/TransactionForm';
+import TransactionList from './components/TransactionList';
+import Charts from './components/Charts';
+import MonthFilter from './components/MonthFilter';
+import { useTransactions } from './hooks/useTransactions';
 
-export default function App() {
-  const { transactions, filtered, totals, month, setMonth, add, remove } = useTransactions()
+function App() {
+    const {
+        transactions,
+        summary,
+        chartData,
+        selectedMonth,
+        setSelectedMonth,
+        availableMonths,
+        addTransaction,
+        deleteTransaction,
+    } = useTransactions();
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-8">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold">Мои финансы</h1>
-        <MonthFilter month={month} setMonth={setMonth} />
-      </header>
+    return (
+        <div className="min-h-screen bg-gray-100">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
+                <header className="mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900">Личный финансовый дашборд</h1>
+                    <p className="text-gray-600 mt-2">Отслеживайте свои доходы и расходы</p>
+                </header>
 
-      <SummaryCards totals={totals} />
+                <SummaryCards summary={summary} />
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <TransactionForm onAdd={add} />
-        <TransactionList items={filtered} onRemove={remove} />
-      </div>
+                <MonthFilter
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
+                    availableMonths={availableMonths}
+                />
 
-      <Charts filtered={filtered} all={transactions} />
-    </div>
-  )
+                <Charts chartData={chartData} />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <TransactionForm onAdd={addTransaction} />
+                    <TransactionList transactions={transactions} onDelete={deleteTransaction} />
+                </div>
+            </div>
+        </div>
+    );
 }
+
+export default App;

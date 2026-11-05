@@ -1,18 +1,19 @@
-const KEY = 'finance-dashboard:transactions'
+const STORAGE_KEY = 'finance_dashboard_transactions';
 
-export function loadTransactions() {
+export const loadTransactions = () => {
   try {
-    const raw = localStorage.getItem(KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error loading transactions:', error);
+    return [];
   }
-}
+};
 
-export function saveTransactions(list) {
+export const saveTransactions = (transactions) => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(list))
-  } catch {
-    /* хранилище недоступно — работаем в памяти */
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+  } catch (error) {
+    console.error('Error saving transactions:', error);
   }
-}
+};

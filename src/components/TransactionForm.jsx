@@ -1,60 +1,120 @@
-import { useState } from 'react'
-import { CATEGORIES } from '../hooks/useTransactions'
+import React, { useState } from 'react';
 
-const today = () => new Date().toISOString().slice(0, 10)
+const CATEGORIES = ['Еда', 'Аренда', 'Зарплата', 'Транспорт', 'Развлечения', 'Коммунальные услуги', 'Другое'];
 
-export default function TransactionForm({ onAdd }) {
-  const [type, setType] = useState('expense')
-  const [amount, setAmount] = useState('')
-  const [category, setCategory] = useState(CATEGORIES.expense[0])
-  const [date, setDate] = useState(today())
-  const [note, setNote] = useState('')
+const TransactionForm = ({ onAdd }) => {
+    const [type, setType] = useState('expense');
+    const [amount, setAmount] = useState('');
+    const [category, setCategory] = useState('Еда');
+    const [description, setDescription] = useState('');
 
-  const changeType = (t) => {
-    setType(t)
-    setCategory(CATEGORIES[t][0])
-  }
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-  const submit = (e) => {
-    e.preventDefault()
-    const value = parseFloat(amount)
-    if (!value || value <= 0) return
-    onAdd({ type, amount: value, category, date, note: note.trim() })
-    setAmount('')
-    setNote('')
-  }
+        const parsedAmount = parseFloat(amount);
+        if (!parsedAmount || parsedAmount <= 0) {
+            alert('Пожалуйста, введите корректную сумму');
+            return;
+        }
 
-  return (
-    <form onSubmit={submit} className="panel space-y-3 self-start">
-      <h2 className="font-bold">Новая операция</h2>
-      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Тип операции">
-        {[['expense', 'Расход'], ['income', 'Доход']].map(([v, label]) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => changeType(v)}
-            aria-pressed={type === v}
-            className={`rounded-md border py-2 text-sm font-medium ${
-              type === v ? 'border-ink bg-ink text-white' : 'border-ink/20 bg-white'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <input className="field" type="number" min="0" step="0.01" placeholder="Сумма, ₽"
-        aria-label="Сумма" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-      <select className="field" aria-label="Категория" value={category}
-        onChange={(e) => setCategory(e.target.value)}>
-        {CATEGORIES[type].map((c) => <option key={c}>{c}</option>)}
-      </select>
-      <input className="field" type="date" aria-label="Дата" value={date}
-        onChange={(e) => setDate(e.target.value)} required />
-      <input className="field" type="text" placeholder="Комментарий (необязательно)"
-        aria-label="Комментарий" value={note} onChange={(e) => setNote(e.target.value)} />
-      <button type="submit" className="w-full rounded-md bg-income py-2 font-medium text-white hover:opacity-90">
-        Добавить
-      </button>
-    </form>
-  )
-}
+        onAdd({
+            type,
+            amount: parsedAmount,
+            category,
+            description: description || category,
+        });
+
+        setAmount('');
+        setDescription('');
+    };
+
+    return (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4">Добавить транзакцию</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Тип
+                    </label>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setType('income')}
+                            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                                type === 'income'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Доход
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setType('expense')}
+                            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                                type === 'expense'
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Расход
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Сумма
+                    </label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Категория
+                    </label>
+                    <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        {CATEGORIES.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Описание (необязательно)
+                    </label>
+                    <input
+                        type="text"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Описание транзакции"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                    Добавить транзакцию
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default TransactionForm;

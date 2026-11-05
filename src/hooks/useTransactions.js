@@ -1,37 +1,91 @@
-import { useEffect, useMemo, useState } from 'react'
-import { loadTransactions, saveTransactions } from '../utils/storage'
+import { useState, useEffect, useMemo } from 'react';
+import { loadTransactions, saveTransactions } from '../utils/storage';
 
-export const CATEGORIES = {
-  expense: ['Еда', 'Жильё', 'Транспорт', 'Здоровье', 'Развлечения', 'Покупки', 'Прочее'],
-  income: ['Зарплата', 'Подработка', 'Подарки', 'Прочее'],
-}
+export const useTransactions = () => {
+  const [transactions, setTransactions] = useState(() => loadTransactions());
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
-export function useTransactions() {
-  const [transactions, setTransactions] = useState(loadTransactions)
-  const [month, setMonth] = useState('') // '' = всё время, иначе 'YYYY-MM'
+  useEffect(() => {
+    saveTransactions(transactions);
+  }, [transactions]);
 
-  useEffect(() => saveTransactions(transactions), [transactions])
+  const addTransaction = (transaction) => {
+    const newTransaction = {
+      ...transaction,
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+    };
+    setTransactions([newTransaction, ...transactions]);
+  };
 
-  const add = (t) =>
-    setTransactions((prev) => [{ ...t, id: crypto.randomUUID() }, ...prev])
-  const remove = (id) => setTransactions((prev) => prev.filter((t) => t.id !== id))
+  const deleteTransaction = (id) => {
+    setTransactions(transactions.filter(t => t.id !== id));
+  };
 
-  const filtered = useMemo(
-    () =>
-      transactions
-        .filter((t) => !month || t.date.startsWith(month))
-        .sort((a, b) => b.date.localeCompare(a.date)),
-    [transactions, month]
-  )
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      const transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+      return transactionMonth === selectedMonth;
+    });
+  }, [transactions, selectedMonth]);
 
-  const totals = useMemo(() => {
-    const income = filtered.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-    const expense = filtered.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
-    return { income, expense, balance: income - expense }
-  }, [filtered])
+  const summary = useMemo(() => {
+    const income = filteredTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
 
-  return { transactions, filtered, totals, month, setMonth, add, remove }
-}
+    const expenses = filteredTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
 
-export const formatMoney = (n) =>
-  new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(n)
+    const balance = income - expenses;
+
+    return { income, expenses, balance };
+  }, [filteredTransactions]);
+
+  const chartData = useMemo(() => {
+    const incomeVsExpenses = [
+      { name: 'Доходы', value: summary.income, fill: '#10b981' },
+      { name: 'Расходы', value: summary.expenses, fill: '#ef4444' },
+    ];
+
+    const categoryMap = {};
+    filteredTransactions
+        .filter(t => t.type === 'expense')
+        .forEach(t => {
+          categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
+        });
+
+    const expenseByCategory = Object.entries(categoryMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
+
+    return { incomeVsExpenses, expenseByCategory };
+  }, [filteredTransactions, summary]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    transactions.forEach(t => {
+      const date = new Date(t.date);
+      const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(month);
+    });
+    return Array.from(months).sort().reverse();
+  }, [transactions]);
+
+  return {
+    transactions: filteredTransactions,
+    summary,
+    chartData,
+    selectedMonth,
+    setSelectedMonth,
+    availableMonths,
+    addTransaction,
+    deleteTransaction,
+  };
+};
