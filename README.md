@@ -1,4 +1,37 @@
-# 💰 Personal Finance Dashboard
+# 💰 Личный финансовый дашборд
+
+🌐 **Демо:** https://olegger69.github.io/personal-finance-dashboard/
+
+> Простой и современный дашборд личных финансов на React + Vite + Tailwind CSS.
+> Данные сохраняются в localStorage браузера.
+
+## 🚀 Возможности
+
+- Отслеживание доходов и расходов
+- Сводные карточки с итогами (доход, расход, баланс)
+- Добавление и удаление транзакций
+- Фильтрация по месяцам
+- Интерактивные графики (Recharts):
+    - Доходы vs Расходы
+    - Расходы по категориям
+- Адаптивный дизайн (мобильные и десктоп)
+- Сохранение данных в localStorage
+
+## 🛠 Технологии
+
+- React 18
+- Vite
+- Tailwind CSS
+- Recharts
+- GitHub Pages (деплой)
+
+## 📦 Установка и запуск
+
+```bash
+git clone https://github.com/olegger69/personal-finance-dashboard.git
+cd personal-finance-dashboard
+npm install
+npm run dev
 
 > Простой и современный дашборд личных финансов на React + Vite + Tailwind CSS
 
